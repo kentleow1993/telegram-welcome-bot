@@ -48,14 +48,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     text = """
-💎 GoFun 娛樂
+💎 4Win 娛樂
 
 💎 全球華人首選綜合娛樂平台
 🎮 正版大廠遊戲，公平穩定運營
 
-🟧【GoFun・核心優勢】
+🟧【4Wi・核心優勢】
 
-🔸 電子返水上限，天天回饋
+🔸 返水无上限，天天回饋
 🔸 官方頻道每日紅包不斷
 🔸 真人、電子、體育、棋牌一站暢玩
 🔸 資金儲備充足，100%穩定出款
