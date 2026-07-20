@@ -1,14 +1,14 @@
 import os
 import asyncio
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# Fix Python 3.14 event loop issue (safe)
-try:
-    asyncio.get_event_loop()
-except RuntimeError:
-    asyncio.set_event_loop(asyncio.new_event_loop())
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
+)
 
-
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -18,60 +18,82 @@ from telegram.ext import (
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-
-# Start command
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                "🌐 Open Website",
-                url="https://www.4win.vip/myr/home"
-            )
-        ]
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
+WEBSITE = "https://www.4win.vip/myr/home"
 
 
-    message = """
-🎉 Welcome!
+# ==========================
+# Render Port Server
+# ==========================
 
-Thank you for joining our Telegram bot.
+class HealthHandler(BaseHTTPRequestHandler):
 
-Click the button below to visit our website.
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
+
+
+def run_web_server():
+
+    port = int(os.environ.get("PORT", 10000))
+
+    server = HTTPServer(
+        ("0.0.0.0", port),
+        HealthHandler
+    )
+
+    print("Web server running on port", port)
+
+    server.serve_forever()
+
+
+
+# ==========================
+# Telegram Bot
+# ==========================
+
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
+    text = """
+🎉 Welcome to 4WIN Official Bot
+
+🔥 Fast & Secure Online Platform
+
+Click below to enter.
 """
 
 
-    # Send banner image
-    try:
-        with open("banner.jpg", "rb") as photo:
-            await update.message.reply_photo(
-                photo=photo,
-                caption=message,
-                reply_markup=reply_markup
+    keyboard = [
+
+        [
+            InlineKeyboardButton(
+                "🚀 ENTER NOW",
+                url=WEBSITE
             )
+        ]
 
-    except FileNotFoundError:
-
-        await update.message.reply_text(
-            message,
-            reply_markup=reply_markup
-        )
+    ]
 
 
+    await update.message.reply_photo(
+        photo=open("banner.jpg","rb"),
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-# Error handler
-async def error_handler(update, context):
-    print("Error:", context.error)
 
 
 
 def main():
 
-    if not TOKEN:
-        print("ERROR: BOT_TOKEN missing")
-        return
+    # start Render web server
+    threading.Thread(
+        target=run_web_server,
+        daemon=True
+    ).start()
 
 
     app = (
@@ -83,11 +105,11 @@ def main():
 
 
     app.add_handler(
-        CommandHandler("start", start)
+        CommandHandler(
+            "start",
+            start
+        )
     )
-
-
-    app.add_error_handler(error_handler)
 
 
     print("Bot started...")
